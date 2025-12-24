@@ -27,37 +27,37 @@ async function sendTelegramMessage(text) {
 
 // 🧠 Format RevenueCat event
 function formatMessage(event) {
-  const {
-    type,
-    app_id,
-    user_id,
-    product_id,
-    store,
-    price,
-    currency,
-    country,
-    event_timestamp_ms
-  } = event;
-
-  const priceText = price ? `${price} ${currency}` : "—";
-
-  return `
-🚀 *${app_id}*
-*Event:* ${type}
-
-👤 *User ID:*
-\`${user_id}\`
-
-📦 *Product:*
-\`${product_id || "—"}\`
-
-🏪 *Store:* ${store || "—"}
-🌍 *Country:* ${country || "—"}
-💰 *Revenue:* ${priceText}
-
-⏱ *Time:* ${event_timestamp_ms ? new Date(event_timestamp_ms).toLocaleString() : "—"}
-`;
-}
+    const {
+      type = "—",
+      app_id = "—",
+      user_id = "—",
+      product_id = "—",
+      store = "—",
+      price,
+      currency,
+      country = "—",
+      event_timestamp_ms
+    } = event;
+  
+    const priceText = price ? `${price} ${currency}` : "—";
+  
+    return `
+  🚀 *${app_id}*
+  *Event:* ${type}
+  
+  👤 *User ID:*
+  \`${user_id}\`
+  
+  📦 *Product:*
+  \`${product_id}\`
+  
+  🏪 *Store:* ${store}
+  🌍 *Country:* ${country}
+  💰 *Revenue:* ${priceText}
+  
+  ⏱ *Time:* ${event_timestamp_ms ? new Date(event_timestamp_ms).toLocaleString() : "—"}
+  `;
+  }  
 
 // 🎯 RevenueCat Webhook
 app.post("/webhook/revenuecat", async (req, res) => {
