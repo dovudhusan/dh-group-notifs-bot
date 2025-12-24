@@ -14,6 +14,13 @@ const {
   PORT = 3000
 } = process.env;
 
+// 🔐 Escape special Markdown characters
+function escapeMarkdown(text) {
+  if (!text) return text;
+  // Escape special characters for Telegram Markdown
+  return String(text).replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+}
+
 // 📩 Send message to Telegram
 async function sendTelegramMessage(text) {
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
@@ -41,21 +48,31 @@ function formatMessage(event) {
   
     const priceText = price ? `${price} ${currency}` : "—";
   
+    // Escape special characters in dynamic values
+    const escapedAppId = escapeMarkdown(app_id);
+    const escapedType = escapeMarkdown(type);
+    const escapedUserId = escapeMarkdown(user_id);
+    const escapedProductId = escapeMarkdown(product_id);
+    const escapedStore = escapeMarkdown(store);
+    const escapedCountry = escapeMarkdown(country);
+    const escapedPriceText = escapeMarkdown(priceText);
+    const escapedTime = escapeMarkdown(event_timestamp_ms ? new Date(event_timestamp_ms).toLocaleString() : "—");
+  
     return `
-  🚀 *${app_id}*
-  *Event:* ${type}
+  🚀 *${escapedAppId}*
+  *Event:* ${escapedType}
   
   👤 *User ID:*
-  \`${user_id}\`
+  \`${escapedUserId}\`
   
   📦 *Product:*
-  \`${product_id}\`
+  \`${escapedProductId}\`
   
-  🏪 *Store:* ${store}
-  🌍 *Country:* ${country}
-  💰 *Revenue:* ${priceText}
+  🏪 *Store:* ${escapedStore}
+  🌍 *Country:* ${escapedCountry}
+  💰 *Revenue:* ${escapedPriceText}
   
-  ⏱ *Time:* ${event_timestamp_ms ? new Date(event_timestamp_ms).toLocaleString() : "—"}
+  ⏱ *Time:* ${escapedTime}
   `;
   }  
 
