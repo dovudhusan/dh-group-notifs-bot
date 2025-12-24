@@ -1,34 +1,18 @@
 import express from "express";
 import axios from "axios";
-import crypto from "crypto";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const app = express();
-app.use(express.json({ verify: verifyRevenueCatSignature }));
+app.use(express.json());
 
 const {
   TELEGRAM_BOT_TOKEN,
   TELEGRAM_GROUP_ID,
   REVENUECAT_WEBHOOK_SECRET,
-  PORT
+  PORT = 3000
 } = process.env;
-
-// 🔐 Verify RevenueCat signature
-function verifyRevenueCatSignature(req, res, buf) {
-  const signature = req.headers["x-revenuecat-signature"];
-  if (!signature) return;
-
-  const hmac = crypto
-    .createHmac("sha256", REVENUECAT_WEBHOOK_SECRET)
-    .update(buf)
-    .digest("hex");
-
-  if (hmac !== signature) {
-    throw new Error("Invalid RevenueCat signature");
-  }
-}
 
 // 📩 Send message to Telegram
 async function sendTelegramMessage(text) {
@@ -55,9 +39,7 @@ function formatMessage(event) {
     event_timestamp_ms
   } = event;
 
-  const priceText = price
-    ? `${price} ${currency}`
-    : "—";
+  const priceText = price ? `${price} ${currency}` : "—";
 
   return `
 🚀 *${app_id}*
@@ -67,21 +49,25 @@ function formatMessage(event) {
 \`${user_id}\`
 
 📦 *Product:*
-\`${product_id}\`
+\`${product_id || "—"}\`
 
-🏪 *Store:* ${store}
-🌍 *Country:* ${country}
+🏪 *Store:* ${store || "—"}
+🌍 *Country:* ${country || "—"}
 💰 *Revenue:* ${priceText}
 
-⏱ *Time:* ${new Date(event_timestamp_ms).toLocaleString()}
+⏱ *Time:* ${event_timestamp_ms ? new Date(event_timestamp_ms).toLocaleString() : "—"}
 `;
 }
 
 // 🎯 RevenueCat Webhook
 app.post("/webhook/revenuecat", async (req, res) => {
   try {
-    const event = req.body.event;
+    const authHeader = req.headers["authorization"];
+    if (!authHeader || authHeader !== `Bearer ${REVENUECAT_WEBHOOK_SECRET}`) {
+      return res.status(401).send("Unauthorized");
+    }
 
+    const event = req.body.event;
     if (!event) return res.sendStatus(400);
 
     const message = formatMessage(event);
