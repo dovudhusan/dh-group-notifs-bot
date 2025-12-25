@@ -91,7 +91,7 @@ function formatMessage(event) {
         currency,
         country_code,
         id,
-        is_trial_conversion,
+        period_type,
         price_in_purchased_currency
     } = event;
     console.log(event);
@@ -103,7 +103,7 @@ function formatMessage(event) {
     const escapedCountry = escapeMarkdown(countryName);
 
     return `
-        *Habitz:* ${is_trial_conversion ? "Trial" : "Subscription"} Started Premium 
+        *Habitz:* ${period_type === 'TRIAL' ? "Trial" : "Subscription"} ${escapedEvent === 'CANCELLATION' ? "Cancelled" : "Started Premium"} 
   
 *Event:* ${escapedEvent ?? "-"}
    
@@ -114,7 +114,7 @@ function formatMessage(event) {
    
 🏪 *Store:* ${escapedStore}
 🌍 *Country:* ${escapedCountry}
-💰 *Revenue:* ${price_in_purchased_currency} ~ ${price} ${currency}
+💰 *Revenue:* ${price_in_purchased_currency} ${currency} ~ ${price.toFixed(2)} USD
    `;
 }
 
